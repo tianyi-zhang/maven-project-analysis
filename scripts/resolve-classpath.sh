@@ -26,28 +26,28 @@ do
 	project="${username}_${reponame}"
 
 	if [ -d "${project_dir}/${project}" ]; then
-		if [ -f "${project_dir}/${project}/onr_dependency.log" ]; then
-			if ! grep -q 'BUILD SUCCESS' ${project_dir}/${project}/onr_dependency.log; then
+		if [ -f "${project_dir}/${project}/onr_classpath.log" ]; then
+			if ! grep -q 'BUILD SUCCESS' ${project_dir}/${project}/onr_classpath.log; then
 				printf "$line was not resolved correctly earlier. Redo it.\n"
 				cd ${project_dir}/${project}
 				# try another option---compile tests but do not run tests
 				mvn install -DskipTests -f "pom.xml" &> /dev/null
-				mvn dependency:resolve -f "pom.xml" &> onr_dependency.log
+				mvn dependency:build-classpath -f "pom.xml" &> onr_classpath.log
 				rm -r ~/.m2/repository
-				printf "Finish resolving the dependency in $line\n\n"
+				printf "Finish resolving the classpath of $line\n\n"
 			else 
 				printf "$line has already been resolved.\n\n"
 			fi
 		else
 			if grep -q 'BUILD SUCCESS' ${project_dir}/${project}/onr_build.log; then
-				# only resolve dependencies of projects that build successfully and skip compiling and running test cases
-				printf "Begin to resolve the dependency in $line\n"
+				# only resolve classpaths of projects that build successfully and skip compiling and running test cases
+				printf "Begin to resolve the classpath of $line\n"
 				cd ${project_dir}/${project}
 				# install the maven project jars and all lib dependency jars without compiling all tests
 				mvn install -Dmaven.test.skip=true -f "pom.xml" &> /dev/null
-				mvn dependency:resolve -f "pom.xml" &> onr_dependency.log
+				mvn dependency:build-classpath -f "pom.xml" &> onr_classpath.log
 				rm -r ~/.m2/repository
-				printf "Finish resolving the dependency in $line\n\n"
+				printf "Finish resolving the classpath of $line\n\n"
 			fi
 		fi
 	else

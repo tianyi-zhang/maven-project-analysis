@@ -29,7 +29,14 @@ do
 	if grep -q 'BUILD SUCCESS' ${project_dir}/${project}/onr_build.log; then
 		# only run tests in projects that have successfully built
 		if [ -f "${project_dir}/${project}/onr_test.log" ]; then
-			printf "$line has already been tested.\n\n"
+			if ! grep -q 'BUILD SUCCESS' ${project_dir}/${project}/onr_test.log; then
+				printf "There is a test failure in $line. Rerun it.\n"
+				# rerun tests and ignore test failures in submodules to continue run tests in all modules
+				mvn test -f "${project_dir}/${project}/pom.xml" -fn &> ${project_dir}/${project}/onr_test.log
+				printf "Finish resolving the dependency in $line\n\n"
+			else 
+				printf "$line has already been resolved.\n\n"
+			fi
 		else
 			printf "Begin to test $line\n"
 			`mvn test -f "${project_dir}/${project}/pom.xml" &> ${project_dir}/${project}/onr_test.log` 
